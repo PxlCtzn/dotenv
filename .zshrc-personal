@@ -1,0 +1,87 @@
+## Surcharge du theme OMZSH
+# Ajout des infos Terraform
+local tf_info='$(prompt_tf_info)'
+prompt_tf_info() {
+	if [[ -d .terraform ]]; then
+		workspace=$(terraform workspace show 2>/dev/null)
+		echo -n "%{$reset_color%}%{$terminfo[bold]$FG[093]%} \ue69a::${workspace}"
+
+		if [[ -r .terraform/terraform.tfstate ]]; then
+			rg=$(grep -oP '(?<="resource_group_name": ")[^"]*' .terraform/terraform.tfstate)
+			echo -n " %{$reset_color%}%{$FG[033]%}az-rg:"
+			if [[ "$rg" == "RG-DSI-PROD-NE-DEN-TEST" ]]; then
+				echo -n "%{$fg[green]%}test"
+			elif [[ "$rg" == "RG-DSI-PROD-NE-DEN" ]]; then
+				echo -n "%{$fg[red]%}prod"
+			else
+				echo -n "%{$fg[white]%}${rg}"
+			fi
+		fi
+		echo -n "%{$reset_color%}"
+	fi
+}
+
+##
+
+local git_status_info='$(prompt_git_status_info)'
+
+prompt_git_status_info() {
+	local untracked=$(git status -s 2>/dev/null | grep -c '^??')
+	local added=$(git status -s 2>/dev/null | grep -c '^A ')
+	local deleted=$(git status -s 2>/dev/null | grep -c '^ D')
+	if [[ $untracked -ne 0 || $added -ne 0 || $deleted -ne 0 ]]; then
+    	echo -n " %{$reset_color$terminfo[bold]%}[%{$reset_color%}\
+%{$terminfo[bold]$fg[blue]%}\uf128%{$reset_color$fg[blue]%}$untracked%{$reset_color%} \
+%{$terminfo[bold]$fg[green]%}\uf067%{$reset_color$fg[green]%}$added%{$reset_color%} \
+%{$terminfo[bold]$fg[red]%}\uf068%{$reset_color$fg[red]%}$deleted%{$reset_color%}\
+%{$reset_color$terminfo[bold]%}]%{$reset_color%}"
+    fi
+}
+
+ZSH_THEME_GIT_SHOW_UPSTREAM=1
+ZSH_THEME_GIT_PROMPT_PREFIX=" %{$terminfo[bold]$FG[214]%}\ue0a0::"
+ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[red]%} \ue654%{$reset_color%}"
+ZSH_THEME_GIT_PROMPT_UNTRACKED="%{$fg[blue]%} \uf128%{$reset_color%}"
+ZSH_THEME_GIT_PROMPT_CLEAN="%{$fg[green]%} \uf00c%{$reset_color%}"
+
+## Prompt
+PROMPT="
+%{$terminfo[bold]$fg[blue]%}#%{$reset_color%} \
+%(#,%{$bg[yellow]%}%{$fg[black]%}%n%{$reset_color%},%{$fg[cyan]%}%n) \
+%{$reset_color%}@ \
+%{$fg[green]%}%m \
+%{$reset_color%}in \
+%{$terminfo[bold]$fg[yellow]%}%c%{$reset_color%}\
+${hg_info}\
+${git_info}${git_status_info}\
+${tf_info}\
+${svn_info}\
+${venv_info}\
+ \
+[%*] $exit_code
+%{$terminfo[bold]$fg[red]%}$ %{$reset_color%}"
+
+alias vim='nvim'
+## Alias FS
+alias perso='cd /home/pxlctzn/Documents/Perso/'
+alias pj='cd /home/pxlctzn/Documents/Perso/00-Projets/'
+alias pj_web='cd /home/pxlctzn/Documents/Perso/00-Projets/00-Web/'
+
+## Alias DOCKER
+alias dcup='docker-compose up  -d'
+alias dcd='docker-compose down'
+alias dcp='docker-compose pull'
+alias dcprune='docker system prune -a --force'
+alias dcl='docker compose logs -f'
+alias dcr='docker compose restart'
+
+## Alias Kube
+alias k='kubectl '
+alias kgp='kubectl get pods'
+alias kga='kubectl get all'
+alias minik='minikube kubectl --'
+
+export PATH=$PATH:~/go/bin:~/.cargo/bin:~/.local/bin/scripts
+
+##TMUX Sessionizer
+export TMS_PJ_DIRS="/home/pxlctzn/Documents/Perso/00-Projets/00-Web /home/pxlctzn/Documents/Perso/00-Projets/01-JeuxVideo /home/pxlctzn/Documents/Perso/00-Projets/03-CodesDivers /home/pxlctzn/Documents/Perso/00-Projets/07-Applications"
